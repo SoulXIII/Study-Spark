@@ -1,0 +1,38 @@
+{
+  "name": "studyspark-backend",
+  "version": "1.0.0",
+  "description": "StudySpark AI Backend API",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "npx kill-port 5000 && node --watch src/index.js",
+    "start": "npx kill-port 5000 && node src/index.js",
+    "seed": "node src/scripts/seed.js"
+  },
+  "keywords": [
+    "study",
+    "learning",
+    "api"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "bcryptjs": "2.4.3",
+    "cheerio": "^1.2.0",
+    "compromise": "^14.15.0",
+    "cors": "2.8.5",
+    "dotenv": "16.3.1",
+    "express": "^4.22.1",
+    "jsonwebtoken": "9.0.2",
+    "multer": "^2.1.1",
+    "natural": "^8.1.1",
+    "openai": "^6.32.0",
+    "pdf-parse": "^2.4.5",
+    "pg": "8.11.2",
+    "uuid": "9.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}

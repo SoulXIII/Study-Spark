@@ -1,0 +1,444 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+    --card: 217 33% 17%;
+    --card-foreground: 210 40% 98%;
+    --popover: 217 33% 17%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 263 70% 50%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 263 70% 50%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 217 33% 25%;
+    --input: 217 33% 25%;
+    --ring: 217 91% 60%;
+    --radius: 1rem;
+
+    --glass-bg: 217 33% 17%;
+    --glass-border: 0 0% 100%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(263 70% 50%));
+    --gradient-mesh: radial-gradient(ellipse at 20% 50%, hsla(217, 91%, 60%, 0.08) 0%, transparent 50%),
+                     radial-gradient(ellipse at 80% 20%, hsla(263, 70%, 50%, 0.06) 0%, transparent 50%),
+                     radial-gradient(ellipse at 40% 80%, hsla(217, 91%, 60%, 0.04) 0%, transparent 50%);
+
+    --sidebar-background: 222 47% 11%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 217 33% 17%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217 33% 25%;
+    --sidebar-ring: 217 91% 60%;
+  }
+
+  .light {
+    --background: 0 0% 98%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 263 70% 50%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 263 70% 50%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 217 91% 60%;
+
+    --glass-bg: 0 0% 100%;
+    --glass-border: 214 32% 91%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-body antialiased;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-card/60 backdrop-blur-xl border border-white/5 rounded-2xl;
+  }
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+  .gradient-mesh-bg {
+    background-image: var(--gradient-mesh);
+  }
+  .shimmer {
+    @apply relative overflow-hidden;
+  }
+  .shimmer::after {
+    content: '';
+    @apply absolute inset-0;
+    background: linear-gradient(90deg, transparent, hsla(0, 0%, 100%, 0.05), transparent);
+    animation: shimmer 2s infinite;
+  }
+  .nav-item {
+    @apply flex flex-col items-center gap-1 text-xs text-muted-foreground transition-colors;
+  }
+  .nav-item.active {
+    @apply text-primary;
+  }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Solution markdown + KaTeX styles */
+.solution-body {
+  font-size: 0.875rem;
+  line-height: 1.75;
+  color: hsl(var(--muted-foreground));
+}
+.solution-body h1,
+.solution-body h2,
+.solution-body h3,
+.solution-body h4 {
+  color: hsl(var(--foreground));
+  font-weight: 600;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+.solution-body h1 { font-size: 1.1rem; }
+.solution-body h2 { font-size: 1rem; }
+.solution-body h3 { font-size: 0.9rem; }
+.solution-body p {
+  margin: 0.4rem 0;
+}
+.solution-body strong {
+  color: hsl(var(--foreground));
+  font-weight: 600;
+}
+.solution-body em {
+  color: hsl(var(--foreground) / 0.8);
+}
+.solution-body ol {
+  list-style: decimal;
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.solution-body ul {
+  list-style: disc;
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.solution-body li {
+  color: hsl(var(--muted-foreground));
+}
+.solution-body hr {
+  border-color: hsl(var(--border));
+  margin: 1rem 0;
+}
+.solution-body code {
+  background: hsl(var(--primary) / 0.12);
+  color: hsl(var(--primary));
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-family: monospace;
+}
+.solution-body pre {
+  background: hsl(var(--muted) / 0.4);
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  overflow-x: auto;
+  margin: 0.75rem 0;
+}
+.solution-body pre code {
+  background: transparent;
+  padding: 0;
+  font-size: 0.8rem;
+}
+.solution-body blockquote {
+  border-left: 3px solid hsl(var(--primary) / 0.5);
+  padding-left: 0.75rem;
+  color: hsl(var(--muted-foreground) / 0.8);
+  margin: 0.5rem 0;
+}
+/* ── MathJax dark-theme overrides ─────────────────────────────────────────── */
+
+/* All rendered math inherits the foreground colour */
+mjx-container {
+  color: hsl(var(--foreground)) !important;
+  max-width: 100%;
+  overflow-x: visible;
+}
+
+/* Display-mode equations: block with breathing room.
+   Only scroll if the equation is genuinely wider than its container. */
+mjx-container[display="true"] {
+  display: block !important;
+  margin: 0.75rem 0 !important;
+  text-align: left;
+  padding: 0.25rem 0;
+  overflow-x: visible;
+}
+
+/* Inline equations sit flush with surrounding text */
+mjx-container:not([display="true"]) {
+  display: inline-flex !important;
+  vertical-align: middle;
+  overflow-x: visible;
+}
+
+/* MathJax SVG paths pick up the text colour */
+mjx-container svg {
+  fill: currentColor;
+  overflow: visible;
+}
+
+/* Only the solution body itself scrolls if content overflows — not each expression */
+.solution-body {
+  overflow-x: auto;
+}
+
+/* ── Pokemon companion animations ─────────────────────────────────────────── */
+
+.pixelated {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+@keyframes pokemon-idle-anim {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-5px); }
+}
+@keyframes pokemon-bounce-anim {
+  0%   { transform: translateY(0) scale(1); }
+  30%  { transform: translateY(-18px) scale(1.15); }
+  55%  { transform: translateY(-6px) scale(1.05); }
+  75%  { transform: translateY(-12px) scale(1.1); }
+  100% { transform: translateY(0) scale(1); }
+}
+@keyframes pokemon-celebrate-anim {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  20%  { transform: rotate(-15deg) scale(1.2); }
+  40%  { transform: rotate(15deg) scale(1.2); }
+  60%  { transform: rotate(-10deg) scale(1.15); }
+  80%  { transform: rotate(10deg) scale(1.15); }
+}
+@keyframes pokemon-shake-anim {
+  0%, 100% { transform: translateX(0); }
+  20%  { transform: translateX(-8px) rotate(-5deg); }
+  40%  { transform: translateX(8px) rotate(5deg); }
+  60%  { transform: translateX(-5px) rotate(-3deg); }
+  80%  { transform: translateX(5px) rotate(3deg); }
+}
+
+.pokemon-idle      { animation: pokemon-idle-anim 2.4s ease-in-out infinite; }
+.pokemon-bounce    { animation: pokemon-bounce-anim 0.7s ease-out forwards; }
+.pokemon-celebrate { animation: pokemon-celebrate-anim 0.9s ease-in-out forwards; }
+.pokemon-shake     { animation: pokemon-shake-anim 0.5s ease-in-out forwards; }
+
+/* ── Click happy animation (replaces state class for 0.6 s) ─────────────── */
+@keyframes pokemon-happy-anim {
+  0%   { transform: scale(1)    translateY(0px)   rotate(0deg);  }
+  22%  { transform: scale(1.22) translateY(-12px) rotate(-10deg); }
+  45%  { transform: scale(1.15) translateY(-7px)  rotate(8deg);  }
+  65%  { transform: scale(1.19) translateY(-10px) rotate(-6deg); }
+  82%  { transform: scale(1.08) translateY(-4px)  rotate(3deg);  }
+  100% { transform: scale(1)    translateY(0px)   rotate(0deg);  }
+}
+.pokemon-happy { animation: pokemon-happy-anim 0.6s cubic-bezier(.36,.07,.19,.97) forwards; }
+
+/* ── Wrong-answer red flash (applied alongside state class) ──────────────── */
+@keyframes pokemon-wrong-flash-anim {
+  0%   { filter: drop-shadow(0 0 0px   rgba(220,38,38,0));   }
+  25%  { filter: drop-shadow(0 0 14px  rgba(220,38,38,0.9)) brightness(0.75); }
+  100% { filter: drop-shadow(0 0 0px   rgba(220,38,38,0));   }
+}
+.pokemon-wrong-flash { animation: pokemon-wrong-flash-anim 0.55s ease-out forwards; }
+
+/* ── Per-state sprite wrapper animations ──────────────────────────────────── */
+
+/* Walking: quick alternating step-bob */
+@keyframes pokemon-walking-anim {
+  0%, 100% { transform: translateY(0px) scaleY(1); }
+  28%       { transform: translateY(-4px) scaleY(0.96); }
+  62%       { transform: translateY(2px) scaleY(1.03); }
+}
+.pokemon-state-walking { animation: pokemon-walking-anim 0.34s ease-in-out infinite; }
+
+/* Sleeping: slow breathe / gentle hover */
+@keyframes pokemon-sleeping-anim {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  50%       { transform: translateY(-3px) scale(0.97); }
+}
+.pokemon-state-sleeping { animation: pokemon-sleeping-anim 2.8s ease-in-out infinite; }
+
+/* Reacting: quick double-pulse scale (2 iterations ≈ 0.56 s, finishes before idle resumes) */
+@keyframes pokemon-reacting-anim {
+  0%, 100% { transform: scale(1); }
+  40%       { transform: scale(1.14); }
+}
+.pokemon-state-reacting { animation: pokemon-reacting-anim 0.28s ease-out 2; }
+
+/* Celebrating: continuous golden-glow + gentle bounce */
+@keyframes pokemon-celebrating-anim {
+  0%, 100% { transform: scale(1) translateY(0px);   filter: brightness(1) drop-shadow(0 0 4px rgba(255,215,0,0.4)); }
+  50%       { transform: scale(1.08) translateY(-3px); filter: brightness(1.2) drop-shadow(0 0 14px rgba(255,215,0,0.85)); }
+}
+.pokemon-state-celebrating { animation: pokemon-celebrating-anim 0.45s ease-in-out infinite; }
+
+/* Idle: already defined above as .pokemon-idle; alias for consistency */
+.pokemon-state-idle { animation: pokemon-idle-anim 2.4s ease-in-out infinite; }
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in { animation: fade-in 0.2s ease-out; }
+
+@keyframes sparkle-float {
+  0%   { opacity: 1; transform: translateY(0) scale(1) rotate(0deg); }
+  100% { opacity: 0; transform: translateY(-34px) scale(0.3) rotate(45deg); }
+}
+@keyframes zzz-float {
+  0%   { opacity: 0; transform: translateY(0) scale(0.7); }
+  25%  { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-38px) scale(1.2); }
+}
+
+/* ── Pixel art speech bubble ──────────────────────────────────────────────── */
+.pixel-bubble {
+  background: #f8f5e4;
+  color: #1a1a1a;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 8px;
+  line-height: 1.6;
+  letter-spacing: 0.02em;
+  padding: 6px 9px;
+  max-width: 144px;
+  min-width: 54px;
+  text-align: center;
+  word-break: break-word;
+  border: 3px solid #1a1a1a;
+  box-shadow: 3px 3px 0 #1a1a1a;
+  border-radius: 0;
+  position: relative;
+  white-space: pre-wrap;
+}
+/* Blinking RPG cursor at end of every message */
+.pixel-bubble::after {
+  content: "▌";
+  display: inline;
+  font-size: 6px;
+  vertical-align: baseline;
+  opacity: 0.7;
+  animation: pixel-cursor-blink 0.9s step-end infinite;
+}
+@keyframes pixel-cursor-blink {
+  0%, 100% { opacity: 0.7; }
+  50%       { opacity: 0;   }
+}
+/* Stepped pixel tail pointing down */
+.pixel-bubble-tail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: -2px;
+}
+.pixel-bubble-tail-1 {
+  width: 14px; height: 4px;
+  background: #f8f5e4;
+  border-left: 3px solid #1a1a1a;
+  border-right: 3px solid #1a1a1a;
+  border-bottom: 3px solid #1a1a1a;
+}
+.pixel-bubble-tail-2 {
+  width: 8px; height: 4px;
+  background: #f8f5e4;
+  border-left: 3px solid #1a1a1a;
+  border-right: 3px solid #1a1a1a;
+  border-bottom: 3px solid #1a1a1a;
+}
+.pixel-bubble-tail-3 {
+  width: 3px; height: 4px;
+  background: #f8f5e4;
+  border-left: 3px solid #1a1a1a;
+  border-right: 3px solid #1a1a1a;
+  border-bottom: 3px solid #1a1a1a;
+}
+
+/* ── Per-variant color themes (set on the wrapper, cascade to bubble + tail) */
+.pixel-bubble-wrap--correct .pixel-bubble {
+  background: #e8f5e9; border-color: #2e7d32;
+  box-shadow: 3px 3px 0 #2e7d32; color: #1b5e20;
+}
+.pixel-bubble-wrap--correct .pixel-bubble-tail-1,
+.pixel-bubble-wrap--correct .pixel-bubble-tail-2,
+.pixel-bubble-wrap--correct .pixel-bubble-tail-3 { background: #e8f5e9; border-color: #2e7d32; }
+
+.pixel-bubble-wrap--wrong .pixel-bubble {
+  background: #fce4ec; border-color: #c62828;
+  box-shadow: 3px 3px 0 #c62828; color: #b71c1c;
+}
+.pixel-bubble-wrap--wrong .pixel-bubble-tail-1,
+.pixel-bubble-wrap--wrong .pixel-bubble-tail-2,
+.pixel-bubble-wrap--wrong .pixel-bubble-tail-3 { background: #fce4ec; border-color: #c62828; }
+
+.pixel-bubble-wrap--celebrate .pixel-bubble {
+  background: #fffde7; border-color: #f9a825;
+  box-shadow: 3px 3px 0 #f9a825; color: #e65100;
+}
+.pixel-bubble-wrap--celebrate .pixel-bubble-tail-1,
+.pixel-bubble-wrap--celebrate .pixel-bubble-tail-2,
+.pixel-bubble-wrap--celebrate .pixel-bubble-tail-3 { background: #fffde7; border-color: #f9a825; }
+
+.pixel-bubble-wrap--xp .pixel-bubble {
+  background: #ede7f6; border-color: #6a1b9a;
+  box-shadow: 3px 3px 0 #6a1b9a; color: #4a148c;
+}
+.pixel-bubble-wrap--xp .pixel-bubble-tail-1,
+.pixel-bubble-wrap--xp .pixel-bubble-tail-2,
+.pixel-bubble-wrap--xp .pixel-bubble-tail-3 { background: #ede7f6; border-color: #6a1b9a; }
+
+.pixel-bubble-wrap--sleep .pixel-bubble {
+  background: #e8eaf6; border-color: #455a64;
+  box-shadow: 3px 3px 0 #455a64; color: #37474f;
+}
+.pixel-bubble-wrap--sleep .pixel-bubble-tail-1,
+.pixel-bubble-wrap--sleep .pixel-bubble-tail-2,
+.pixel-bubble-wrap--sleep .pixel-bubble-tail-3 { background: #e8eaf6; border-color: #455a64; }
+.solution-body mjx-container,
+.glass-card mjx-container {
+  max-width: 100%;
+  overflow-x: visible;
+}
