@@ -2,7 +2,7 @@ import express from 'express';
 import { authenticateToken } from '../middleware/auth.js';
 import pool from '../config/database.js';
 import { v4 as uuidv4 } from 'uuid';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { callAI } from '../ai/index.js';
 
 const router = express.Router();
 
@@ -231,20 +231,8 @@ router.post('/:id/summarize', authenticateToken, async (req, res) => {
     const { title, subject } = setRes.rows[0];
     const content = fcRes.rows.map((f, i) => `${i + 1}. Q: ${f.question}\n   A: ${f.answer}`).join('\n');
 
-    const key = process.env.GEMINI_API_KEY;
-    if (!key) return res.status(500).json({ error: 'GEMINI_API_KEY not set' });
-
-    const genAI = new GoogleGenerativeAI(key);
-    const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
-
-    const prompt = `You are a study assistant. Below are flashcards from a study set titled "${title}" (subject: ${subject || 'General'}).
-
-${content}
-
-Write a clear, concise summary (200–300 words) of the key concepts covered. Use plain paragraphs — no bullet points or headers. Focus on the most important ideas and how they connect.`;
-
-    const result = await model.generateContent(prompt);
-    res.json({ summary: result.response.text().trim() });
+    const summary = await callAI('summarize', { title, subject, content });
+    res.json({ summary });
   } catch (err) {
     console.error('Summarize error:', err);
     res.status(500).json({ error: 'Failed to generate summary' });

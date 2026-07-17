@@ -1,0 +1,43 @@
+# Environment variables - secrets, never commit
+.env
+.env.local
+.env.*.local
+
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Uploads (can contain sensitive files)
+uploads/
+!uploads/.gitkeep
+
+# Testing
+coverage/
+.nyc_output/
+
+# Miscellaneous
+*.pid
+*.seed

@@ -17,7 +17,8 @@ import xpRoutes from './routes/xp.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-dotenv.config();
+// Load environment variables from .env (not .env.example)
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 const app = express();
 const PORT = process.env.PORT || 5000;

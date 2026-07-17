@@ -1,89 +1,13 @@
 import express from 'express';
 import { awardXp } from '../utils/xp.js';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import fs from 'fs';
 import { load as cheerioLoad } from 'cheerio';
 import { PDFParse } from 'pdf-parse';
 import { authenticateToken } from '../middleware/auth.js';
 import pool from '../config/database.js';
 import { v4 as uuidv4 } from 'uuid';
+import { callAI } from '../ai/index.js';
 const router = express.Router();
-
-// ── Gemini client ─────────────────────────────────────────────────────────────
-
-const getGemini = () => {
-  const key = process.env.GEMINI_API_KEY;
-  if (!key) throw new Error('GEMINI_API_KEY is not set in backend/.env');
-  return new GoogleGenerativeAI(key);
-};
-
-// ── Shared JSON schema for all AI calls ──────────────────────────────────────
-
-// Scale card/quiz counts based on how much content we have
-const getCountRules = (contentLength) => {
-  if (contentLength < 1500) {
-    return '- 8–12 flashcards\n- 5–8 quiz questions';
-  } else if (contentLength < 5000) {
-    return '- 15–20 flashcards\n- 10–14 quiz questions';
-  } else if (contentLength < 12000) {
-    return '- 20–28 flashcards\n- 15–20 quiz questions';
-  } else {
-    return '- 28–35 flashcards\n- 20–25 quiz questions';
-  }
-};
-
-const buildSchema = (contentLength = 0) => `Return ONLY a valid JSON object — no markdown, no extra text — with this exact structure:
-{
-  "title": "Specific topic title (max 60 chars)",
-  "subject": "Pick ONE: Mathematics, Biology, Chemistry, Physics, History, Geography, Computer Science, Literature, Economics, Psychology, Philosophy, Sociology, Law, Medicine, Political Science, Music, Art, Languages, Engineering, Business, Nutrition, Astronomy, Environmental Science, Other",
-  "flashcards": [
-    { "question": "...", "answer": "..." }
-  ],
-  "quiz": [
-    {
-      "question": "...",
-      "options": ["option A", "option B", "option C", "option D"],
-      "correct_option_index": 0,
-      "explanation": "..."
-    }
-  ]
-}
-Rules:
-${getCountRules(contentLength)}
-- All questions SPECIFIC to the provided material — not generic
-- Cover a wide range of topics from across the material, not just the beginning
-- correct_option_index must be 0, 1, 2, or 3`;
-
-// ── Call Gemini (text or image) ───────────────────────────────────────────────
-
-const callGemini = async (textContent, imageBase64 = null, imageMimeType = null) => {
-  const genAI = getGemini();
-  const model = genAI.getGenerativeModel({
-    model: 'gemini-flash-latest',
-    generationConfig: { responseMimeType: 'application/json' },
-  });
-
-  const contentLength = textContent ? textContent.length : 0;
-  const schema = buildSchema(contentLength);
-
-  let parts;
-  if (imageBase64) {
-    parts = [
-      { inlineData: { data: imageBase64, mimeType: imageMimeType } },
-      { text: `Read ALL visible text in this image carefully, then:\n${buildSchema(500)}` },
-    ];
-  } else {
-    parts = [{ text: `${textContent}\n\n${schema}` }];
-  }
-
-  console.log('[generate] Calling Gemini... contentLength:', contentLength);
-  const result = await model.generateContent(parts);
-  const raw = result.response.text();
-  console.log('[generate] Gemini response length:', raw.length);
-
-  if (!raw.trim()) throw new Error('Gemini returned an empty response');
-  return JSON.parse(raw);
-};
 
 // ── Wikipedia extractor (uses REST API — clean plaintext, no HTML parsing) ───
 
@@ -361,7 +285,7 @@ router.post('/', authenticateToken, async (req, res) => {
       if (!row.rows.length) return res.status(404).json({ error: 'Upload not found' });
       const { path: filePath, mimetype } = row.rows[0];
       const base64 = fs.readFileSync(filePath).toString('base64');
-      generated = await callGemini(null, base64, mimetype);
+      generated = await callAI('generate', { imageBase64: base64, imageMimeType: mimetype });
 
     } else if (type === 'pdf') {
       if (!uploadId) return res.status(400).json({ error: 'uploadId required for PDF' });
@@ -371,24 +295,24 @@ router.post('/', authenticateToken, async (req, res) => {
       );
       if (!row.rows.length) return res.status(404).json({ error: 'Upload not found' });
       const pdfText = await getPdfText(row.rows[0].path);
-      generated = await callGemini(
-        `PDF content (ignore any front matter such as title pages, author info, table of contents, index, references list, or acknowledgements — focus only on the actual subject matter and explanatory content):\n${pdfText}`
-      );
+      generated = await callAI('generate', {
+        textContent: `PDF content (ignore any front matter such as title pages, author info, table of contents, index, references list, or acknowledgements — focus only on the actual subject matter and explanatory content):\n${pdfText}`
+      });
 
     } else if (type === 'article') {
       if (!content) return res.status(400).json({ error: 'Article URL required' });
       const articleText = await getArticleContent(content);
-      generated = await callGemini(`Article content:\n${articleText}`);
+      generated = await callAI('generate', { textContent: `Article content:\n${articleText}` });
 
     } else if (type === 'topic') {
       if (!content) return res.status(400).json({ error: 'Topic required' });
-      generated = await callGemini(
-        `Study topic: "${content}"\n\nCreate comprehensive study materials for a student learning this topic from scratch.`
-      );
+      generated = await callAI('generate', {
+        textContent: `Study topic: "${content}"\n\nCreate comprehensive study materials for a student learning this topic from scratch.`
+      });
 
     } else if (type === 'text') {
       if (!content) return res.status(400).json({ error: 'Text content required' });
-      generated = await callGemini(`Study material:\n${content}`);
+      generated = await callAI('generate', { textContent: `Study material:\n${content}` });
 
     } else {
       return res.status(400).json({ error: `Unknown type: ${type}` });

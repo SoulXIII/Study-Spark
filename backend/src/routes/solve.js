@@ -1,42 +1,12 @@
 import express from 'express';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
 import { authenticateToken } from '../middleware/auth.js';
 import pool from '../config/database.js';
+import { callAI } from '../ai/index.js';
+import { parseSubjectAndSolution } from '../ai/schemas.js';
 
 const router = express.Router();
-
-const getGemini = () => {
-  const key = process.env.GEMINI_API_KEY;
-  if (!key) throw new Error('GEMINI_API_KEY is not set');
-  return new GoogleGenerativeAI(key);
-};
-
-// Prompt instructs Gemini to output "Subject: X" on the very first line so we can parse it
-const SOLVE_PROMPT = `You are a knowledgeable tutor.
-
-First line of your response MUST be in this exact format (one line only):
-Subject: [subject area, e.g. Mathematics, Physics, Chemistry, Biology, Computer Science, History, Economics, Statistics, Engineering]
-
-Then provide a complete solution:
-- Use proper markdown formatting (headers, bold, bullet points, numbered lists)
-- Use LaTeX math notation wrapped in $ for inline math and $$ for display math (e.g. $x^2$, $$\\int_0^x f(t)dt$$)
-- Show all working steps clearly
-- Explain each step briefly so the student understands
-- End with a clear final answer
-- Do not truncate or abbreviate — give the full solution`;
-
-function parseSubjectAndSolution(raw) {
-  const firstNewline = raw.indexOf('\n');
-  const firstLine = firstNewline === -1 ? raw : raw.slice(0, firstNewline);
-  if (firstLine.toLowerCase().startsWith('subject:')) {
-    const subject = firstLine.slice('subject:'.length).trim();
-    const solution = raw.slice(firstNewline + 1).replace(/^\n+/, '');
-    return { subject, solution };
-  }
-  return { subject: null, solution: raw };
-}
 
 // POST /api/solve — solve a problem, return solution + detected subject
 router.post('/', authenticateToken, async (req, res) => {
@@ -46,13 +16,7 @@ router.post('/', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'Provide an image (uploadId) or text problem.' });
     }
 
-    const genAI = getGemini();
-    const model = genAI.getGenerativeModel({
-      model: 'gemini-2.0-flash',
-      generationConfig: { maxOutputTokens: 8192, temperature: 0.2 },
-    });
-
-    let parts;
+    let result;
 
     if (uploadId) {
       const row = await pool.query(
@@ -64,31 +28,14 @@ router.post('/', authenticateToken, async (req, res) => {
       const { path: filePath, mimetype } = row.rows[0];
       const base64 = fs.readFileSync(filePath).toString('base64');
 
-      parts = [
-        { inlineData: { data: base64, mimeType: mimetype } },
-        { text: SOLVE_PROMPT },
-      ];
+      console.log('[solve] Calling AI with image...');
+      result = await callAI('solve', { fileData: { base64, mimeType: mimetype } });
     } else {
-      parts = [{ text: `${SOLVE_PROMPT}\n\nProblem: ${text.trim()}` }];
+      console.log('[solve] Calling AI with text...');
+      result = await callAI('solve', { text });
     }
 
-    console.log('[solve] Calling Gemini...');
-    let result;
-    try {
-      result = await model.generateContent(parts);
-    } catch (modelErr) {
-      console.warn('[solve] gemini-2.0-flash failed, falling back:', modelErr.message);
-      const fallback = genAI.getGenerativeModel({
-        model: 'gemini-flash-latest',
-        generationConfig: { maxOutputTokens: 8192, temperature: 0.2 },
-      });
-      result = await fallback.generateContent(parts);
-    }
-
-    const raw = result.response.text().trim();
-    if (!raw) throw new Error('No response from AI');
-
-    const { subject, solution } = parseSubjectAndSolution(raw);
+    const { subject, solution } = parseSubjectAndSolution(result);
     console.log('[solve] Subject:', subject, '| Solution length:', solution.length);
 
     res.json({ solution, subject });
